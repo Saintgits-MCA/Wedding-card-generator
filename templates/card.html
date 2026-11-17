@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Card: {{ d.bride_name }} &amp; {{ d.groom_name }}</title>
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&family=Libre+Baskerville:wght@400;500;600;700&family=Bodoni+Moda:wght@400;500;600;700&family=DM+Serif+Display:wght@400;500;600;700&family=Crimson+Pro:wght@400;500;600;700&family=Prata:wght@400;500;600;700&family=Forum:wght@400;500;600;700&family=Cormorant+Infant:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Raleway:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Allura:wght@400;500;600;700&family=Alex+Brush:wght@400;500;600;700&family=Parisienne:wght@400;500;600;700&family=Tangerine:wght@400;500;600;700&family=Sacramento:wght@400;500;600;700&family=Italianno:wght@400;500;600;700&family=Noto+Sans+Malayalam:wght@400;500;600;700&family=Gayathri:wght@400;500;600;700&family=Rachana:wght@400;500;600;700&family=Meera:wght@400;500;600;700&family=Chilanka:wght@400;500;600;700&family=Karumbi:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&family=Playfair+Display:wght@500;700&family=Great+Vibes&family=Cinzel:wght@500;700&family=Lora:wght@500;700&family=Marcellus&family=Noto+Serif+Malayalam:wght@400;600&family=Manjari:wght@400;700&family=Anek+Malayalam:wght@400;600&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- Tailwind & html2canvas -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="../js/html2canvas.min.js"></script>
+
+<style>
+:root{
+  --paper:{{ design.paper }}; 
+  --ink:{{ design.ink }}; 
+  --accent:{{ design.accent }};
+  --display:"{{ design.display_font }}",serif; 
+  --body:"{{ design.body_font }}",serif; 
+  --mlf:"{{ design.ml_font }}",serif;
+  --zoom: 1;
+}
+
+*{box-sizing:border-box}
+html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{margin:0;background:#0f172a;font:16px/1.5 "Hanken Grotesk",sans-serif;color:#f8fafc; overflow: hidden;}
+
+/* =========================================
+   PRINT LAYOUT (Strict Flexbox, Zero blanks)
+   ========================================= */
+@media print {
+  body { 
+    background: #fff !important; 
+    overflow: visible !important; 
+    height: auto !important; 
+    margin: 0 !important; 
+    padding: 0 !important;
+  }
+  
+  /* Hide UI elements */
+  header, aside, .no-print, .busy { display: none !important; }
+  
+  /* Strip constraints from layout wrappers */
+  .flex.h-screen, .flex-1 { 
+    display: block !important; 
+    height: auto !important; 
+    overflow: visible !important; 
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  #preview-stage { 
+    padding: 0 !important; 
+    overflow: visible !important; 
+    background: none !important; 
+    display: block !important; 
+  }
+  
+  /* Reset canvas scaling */
+  .canvas-wrapper { 
+    transform: none !important; 
+    padding: 0 !important; 
+    margin: 0 !important; 
+    display: block !important;
+  }
+  
+  /* 
+    THE FIX: Use flexbox to center the page instead of absolute positioning.
+    This prevents overflowing past the page limits and creating a blank page 2.
+  */
+  .pages { 
+    padding: 0 !important; 
+    margin: 0 !important; 
+    gap: 0 !important; 
+    display: flex !important; 
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+  }
+  
+  .sheet {
+    box-shadow: none !important; 
+    margin: 0 !important;
+    padding: 10mm !important;
+    width: 148mm !important; 
+    height: 210mm !important;
+    
+    /* Ensure exact page break without adding extra pages */
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    break-after: page !important;
+    page-break-after: always !important;
+  }
+
+  /* Remove break after the final page so no blank page follows */
+  .sheet:last-child {
+    break-after: auto !important;
+    page-break-after: auto !important;
+  }
+
+  @page { size: 148mm 210mm; margin: 0; }
+}
+
+/* ---------- Live Canvas Layout ---------- */
+#preview-stage {
+  background-color: #E6E2D8;
+  background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+.canvas-wrapper {
+  transform: scale(var(--zoom));
+  transform-origin: top center;
+  transition: transform 0.2s ease;
+  padding-bottom: 50px;
+}
+
+/* ---------- The Card (Exact A5) ---------- */
+.pages{display:flex;flex-wrap:wrap;gap:26px;justify-content:center;padding:10px 20px 30px}
+
+.sheet{
+  width:var(--card-width,148mm); height:var(--card-height,210mm); padding:10mm; position:relative;
+  box-shadow:0 6px 24px rgba(0,0,0,.18); background-color:var(--paper); overflow: hidden;
+}
+
+/* SAFE PATTERNS FOR HTML2CANVAS */
+.pat-dots{background-image:radial-gradient(rgba(0,0,0,0.1) 1px, transparent 1.2px);background-size:14px 14px}
+.pat-lines{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.05) 0 1px,transparent 1px 12px)}
+.pat-vignette{background-image:radial-gradient(circle at 50% 40%,transparent 45%,rgba(0,0,0,0.05) 100%)}
+
+.frame{
+  height:100%; padding:11mm 9mm; text-align:center; color:var(--ink);
+  display:flex; flex-direction:column; justify-content:space-between; position:relative
+}
+
+.b-double{border:4px double var(--accent);outline:1px solid var(--ink);outline-offset:-10px}
+.b-temple{border:1.5px solid var(--accent);outline:1px solid var(--ink);outline-offset:-8px;
+  background:linear-gradient(var(--accent),var(--accent)) top/100% 7px no-repeat,linear-gradient(var(--accent),var(--accent)) bottom/100% 7px no-repeat}
+.b-single{border:1.5px solid var(--accent)}
+.b-dots{border:3px dotted var(--accent);outline:1px solid var(--ink);outline-offset:-9px}
+.b-corners{border:1px solid var(--accent)}
+.corner{position:absolute;color:var(--accent);font-size:20px;line-height:1;background:var(--paper);padding:0 3px}
+.c1{top:-11px;left:-11px}.c2{top:-11px;right:-11px}.c3{bottom:-11px;left:-11px}.c4{bottom:-11px;right:-11px}
+
+.lang{font-family:var(--body);font-size:11pt}
+.lang.ml{font-family:var(--mlf);font-size:10pt}
+.dual .lang{font-size:9.5pt}.dual .lang.ml{font-size:8.8pt}
+.lang+.lang{margin-top:12px;padding-top:12px}
+.orn{color:var(--accent);font-size:26px;line-height:1;margin:0 0 6px}
+.opening{font-style:italic;font-size:1.05em;margin:0 0 8px}
+.small{margin:3px 0;line-height:1.45}
+.ml .small,.ml .opening,.ml .par{line-height:1.75}
+.names{font-family:var(--display);color:var(--ink);line-height:1.15;margin:6px 0 2px;font-weight:700}
+.ml .names{font-family:var(--mlf);line-height:1.4}
+.ns-md .names{font-size:20pt}.ns-lg .names{font-size:25pt}.ns-xl .names{font-size:30pt}
+.ml.ns-md .names{font-size:16pt}.ml.ns-lg .names{font-size:19pt}.ml.ns-xl .names{font-size:21pt}
+.dual .ns-md .names{font-size:16pt}.dual .ns-lg .names{font-size:19pt}.dual .ns-xl .names{font-size:22pt}
+.f-gv .names{font-weight:400}
+.par{font-size:.92em;margin:0 0 4px;opacity:.92}
+.amp{color:var(--accent);font-style:italic;font-size:1.2em;margin:2px 0}
+.dv{margin:10px auto;color:var(--accent);width:60%}
+.dv-line{border-top:1px solid var(--accent)}
+.dv-diamond{border-top:1px solid var(--accent);height:0;position:relative;margin:14px auto}
+.dv-diamond::after{content:"❖";position:absolute;left:50%;top:-.65em;transform:translateX(-50%);background:var(--paper);padding:0 8px;font-size:.9rem}
+.dv-dots::after{content:"• • •";letter-spacing:4px}
+.dv-dots{text-align:center;width:auto}
+.when{font-weight:700;font-size:1.08em;margin-top:8px}
+.foot{margin-top:10px;font-size:.95em}
+.phone{margin-top:8px;font-size:.92em}
+
+/* ---------- Sidebar UI ---------- */
+.sidebar { background: #0f172a; border-right: 1px solid #1e293b; }
+.input-group { margin-bottom: 12px; }
+.input-group label { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 4px; }
+.input-group input, .input-group select, .input-group textarea { width: 100%; background: #1e293b; border: 1px solid #334155; border-radius: 4px; padding: 6px 10px; font-size: 12px; color: #fff; outline: none; }
+.input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: #fbbf24; }
+.btn { font-weight: 600; font-size: 12px; padding: 8px 16px; border-radius: 6px; cursor: pointer; transition: all 0.2s; border: none; }
+.btn-primary { background: #fbbf24; color: #0f172a; }
+.btn-primary:hover { background: #fcd34d; }
+.btn-secondary { background: #1e293b; color: #f8fafc; border: 1px solid #334155; }
+.btn-secondary:hover { background: #334155; }
+.busy{position:fixed;inset:0;background:rgba(15,23,42,.8);display:none;align-items:center;justify-content:center;font-weight:600;z-index:999;color:#fff;}
+body.working .busy{display:flex}
+
+
+/* Canva-style editor controls */
+.editor-toolbar{width:100%;display:flex;flex-wrap:wrap;align-items:center;gap:7px;padding:10px 14px;background:#f8fafc;border-bottom:1px solid #cbd5e1;color:#0f172a;position:sticky;top:0;z-index:8}
+.editor-toolbar .btn{font-size:11px;padding:7px 10px}
+.editor-toolbar select{font-size:11px;border:1px solid #cbd5e1;border-radius:5px;padding:6px;background:white;color:#0f172a;max-width:150px}
+.editor-toolbar .divider{height:24px;border-left:1px solid #cbd5e1;margin:0 3px}
+.editor-toolbar .hint{font-size:10px;color:#64748b;margin-left:auto}
+#preview-stage{align-items:stretch}
+.canvas-wrapper{flex:1;overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding-top:22px}
+.pages{align-items:flex-start}
+.sheet{flex:0 0 auto}
+.editable{cursor:move;transform:translate(var(--dx,0px),var(--dy,0px)) scale(var(--object-scale,1));transform-origin:center center;outline:1px dashed transparent;transition:outline-color .12s}
+.editable:hover{outline-color:rgba(37,99,235,.55)}
+.editable.selected{outline:2px solid #2563eb!important;outline-offset:3px;z-index:20}
+.resize-handle{position:absolute;width:12px;height:12px;right:-7px;bottom:-7px;background:#2563eb;border:2px solid white;border-radius:3px;cursor:nwse-resize;z-index:30;display:none}
+.editable.selected .resize-handle{display:block}
+.custom-object{position:absolute!important;left:10%;top:42%;width:80%;z-index:5;text-align:center;}
+.custom-image{position:absolute!important;left:15%;top:32%;width:70%;height:38%;z-index:4}.custom-image img{display:block;width:100%;height:100%;object-fit:contain}
+body.exporting .editable{outline:none!important}
+body.exporting .resize-handle{display:none!important}
+body.exporting .selected{outline:none!important}
+@media print{
+  .editor-toolbar{display:none!important}
+  .editable{outline:none!important;transform:translate(var(--dx,0px),var(--dy,0px)) scale(var(--object-scale,1))!important}
+  .resize-handle{display:none!important}
+  .sheet{flex:none!important;display:block!important}
+}
+
+</style>
+</head>
+<body class="h-screen w-screen flex flex-col overflow-hidden" data-save-key="{{ d.bride_name }}-{{ d.groom_name }}-{{ d.cards_for }}">
+
+<div class="busy">Please Wait... Card is generating</div>
+
+<!-- TOP HEADER -->
+<header class="bg-slate-950 border-b border-slate-800 px-6 py-3 flex items-center justify-between shrink-0 z-20 shadow-lg">
+  <div class="flex items-center gap-3">
+    <span class="text-amber-400 text-xl">✦</span>
+    <h1 class="font-semibold text-sm tracking-wide text-white">Card Studio</h1>
+  </div>
+  <div class="flex items-center gap-2">
+    <form method="post" action="/edit" style="display:inline"><input type="hidden" name="state" value="{{ state }}"><button class="btn btn-secondary" type="submit">← Edit Form</button></form>
+    <button class="btn btn-secondary" type="button" id="downloadPng">📷 Download PNG</button>
+    <button class="btn btn-primary" type="button" id="printPdf">🖨️ Print / Save PDF</button>
+  </div>
+</header>
+
+<!-- MAIN WORKSPACE -->
+<div class="flex-1 flex overflow-hidden">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar w-[380px] overflow-y-auto p-5 shrink-0 z-10 flex flex-col gap-6">
+    
+    {% for n in notes %}<div class="bg-red-900/50 border border-red-700 text-red-200 text-xs p-3 rounded">{{ n }}</div>{% endfor %}
+
+    <!-- AI REVISE -->
+    <div>
+      <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3 border-b border-slate-700 pb-2">✨ Ask Gemini</h2>
+      <form method="post" action="/revise" onsubmit="document.body.classList.add('working')" class="space-y-3">
+        <input type="hidden" name="state" value="{{ state }}">
+        <div class="input-group">
+          <textarea name="instruction" placeholder="Describe what you imagine — mood, colours, motifs, layout, language or wording style. Example: Create an elegant ivory-and-sage botanical invitation and rewrite the Malayalam wording in a warm poetic voice..." rows="4"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <button class="btn btn-primary" name="target" value="design">Change Design</button>
+          <button class="btn btn-secondary" name="target" value="wording">Change Wording</button>
+        </div>
+        <button class="btn btn-secondary w-full border-amber-500/50 text-amber-400" name="target" value="redesign" formnovalidate>🎲 Surprise Me</button>
+        <button class="btn btn-secondary w-full" name="target" value="both">✨ Apply to design + wording</button>
+        <p class="text-[11px] text-slate-400 mt-2 text-center">Look: {{ design.mood or 'Custom' }} · Describe the result you want; Gemini selects the matching fonts, palette and details.</p>
+      </form>
+    </div>
+
+    <!-- FINE TUNING -->
+    <div>
+      <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3 border-b border-slate-700 pb-2">🎨 Fine-Tuning</h2>
+      
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div class="input-group">
+          <label>Card Paper</label>
+<input type="color" value="{{ design.paper }}"
+       oninput="setPaperColor(this.value)">        </div>
+        <div class="input-group">
+          <label>Accent / Border</label>
+          <input type="color" value="{{ design.accent }}" oninput="setVar('--accent', this.value)">
+        </div>
+        <div class="input-group col-span-2">
+          <label>Primary Ink</label>
+          <input type="color" value="{{ design.ink }}" oninput="setVar('--ink', this.value)">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Display Font (Names)</label>
+        <select id="displayFont" onchange="setFont('--display', this.value)">
+          {% for f in ['Cormorant Garamond','Playfair Display','Great Vibes','Cinzel','Lora','Marcellus'] %}
+          <option value="{{ f }}" {% if design.display_font == f %}selected{% endif %}>{{ f }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label>Border Frame</label>
+        <select onchange="document.querySelectorAll('.frame').forEach(el => el.className = 'frame b-' + this.value)">
+          {% for b in ['double','temple','single','dots','corners'] %}
+          <option value="{{ b }}" {% if design.border == b %}selected{% endif %}>{{ b|capitalize }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label>Body Font</label>
+        <select id="bodyFont">
+          {% for f in ['Cormorant Garamond','Playfair Display','Lora','Marcellus','Cinzel'] %}<option value="{{ f }}" {% if design.body_font == f %}selected{% endif %}>{{ f }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Malayalam Font</label>
+        <select id="mlFont">
+          {% for f in ['Noto Serif Malayalam','Manjari','Anek Malayalam'] %}<option value="{{ f }}" {% if design.ml_font == f %}selected{% endif %}>{{ f }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Border Frame</label>
+        <select id="borderStyle" onchange="setBorder(this.value)">
+          {% for b in ['double','temple','single','dots','corners','none'] %}<option value="{{ b }}" {% if design.border == b %}selected{% endif %}>{{ b|capitalize }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Quick colour palette</label>
+        <select id="palettePreset"><option value="">Choose a palette…</option><option value="ivory">Ivory & Gold</option><option value="rose">Rose & Burgundy</option><option value="sage">Sage & Gold</option><option value="navy">Navy & Silver</option><option value="blush">Blush & Plum</option></select>
+      </div>
+      <div class="input-group"><label>Background pattern</label><select id="patternStyle"><option value="none" {% if design.pattern == "none" %}selected{% endif %}>Plain</option><option value="dots" {% if design.pattern == "dots" %}selected{% endif %}>Dots</option><option value="lines" {% if design.pattern == "lines" %}selected{% endif %}>Fine lines</option><option value="vignette" {% if design.pattern == "vignette" %}selected{% endif %}>Soft vignette</option></select></div>
+      <div class="input-group"><label>Divider style</label><select id="dividerStyle"><option value="line" {% if design.divider == "line" %}selected{% endif %}>Line</option><option value="diamond" {% if design.divider == "diamond" %}selected{% endif %}>Diamond</option><option value="dots" {% if design.divider == "dots" %}selected{% endif %}>Dots</option><option value="none" {% if design.divider == "none" %}selected{% endif %}>None</option></select></div>
+      <div class="input-group mt-4">
+        <label class="flex justify-between">Canvas Zoom <span id="zoom-label">100%</span></label>
+        <input id="canvasZoom" type="range" min="0.35" max="1.25" step="0.05" value="0.8">
+      </div>
+    </div>
+
+    <div class="border-t border-slate-700 pt-4">
+      <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3">📐 Card format</h2>
+      <div class="input-group"><label>Card size</label>
+        <select id="cardSize">
+          <option value="148,210">A5</option><option value="105,148">A6</option><option value="210,297">A4</option>
+          <option value="127,178">5 × 7 inch</option><option value="102,152">4 × 6 inch</option><option value="150,150">Square 150 mm</option><option value="custom">Custom size</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div class="input-group"><label>Width (mm)</label><input id="customWidth" type="number" min="50" max="420" value="148"></div>
+        <div class="input-group"><label>Height (mm)</label><input id="customHeight" type="number" min="50" max="594" value="210"></div>
+      </div>
+      <div class="input-group"><label>Orientation</label><select id="orientation"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></div>
+      <p class="text-[10px] text-slate-400">Custom dimensions are in millimetres. Landscape swaps the selected dimensions.</p>
+    </div>
+
+    <div class="border-t border-slate-700 pt-4" id="objectPanel">
+      <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3">✏️ Selected element</h2>
+      <p id="selectionHint" class="text-[11px] text-slate-400 mb-3">Select an item on the card. Double-click text to edit it.</p>
+      <div class="input-group"><label>Font family</label><select id="objectFont"><option value="">Use card default</option>
+        {% for f in ['Cormorant Garamond','Playfair Display','Great Vibes','Cinzel','Lora','Marcellus','Noto Serif Malayalam','Manjari','Anek Malayalam','Arial','Georgia'] %}<option value="{{ f }}">{{ f }}</option>{% endfor %}
+      </select></div>
+      <div class="grid grid-cols-2 gap-2">
+        <div class="input-group"><label>Font size (px)</label><input id="objectSize" type="number" min="6" max="120" value="24"></div>
+        <div class="input-group"><label>Text color</label><input id="objectColor" type="color" value="{{ design.ink }}"></div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <button type="button" class="btn btn-secondary" id="boldText">Bold</button><button type="button" class="btn btn-secondary" id="italicText">Italic</button>
+      </div>
+      <div class="input-group"><label>Alignment</label><select id="objectAlign"><option value="center">Center</option><option value="left">Left</option><option value="right">Right</option></select></div>
+      <div class="input-group"><label>Rotation</label><input id="objectRotate" type="range" min="-180" max="180" value="0"><span id="rotateLabel" class="text-xs text-slate-400">0°</span></div>
+      <div class="grid grid-cols-2 gap-2"><button type="button" class="btn btn-secondary" id="duplicateObject">Duplicate</button><button type="button" class="btn btn-secondary" id="deleteObject">Delete</button></div>
+    </div>
+  </aside>
+
+  <!-- CANVAS -->
+  <main id="preview-stage" class="flex-1 overflow-auto relative flex flex-col items-center">
+    <div class="editor-toolbar no-print">
+      <button class="btn btn-secondary" id="undoBtn" type="button">↶ Undo</button><button class="btn btn-secondary" id="redoBtn" type="button">↷ Redo</button>
+      <span class="divider"></span>
+      <button class="btn btn-secondary" id="addTextBtn" type="button">＋ Text</button>
+      <button class="btn btn-secondary" id="addImageBtn" type="button">▧ Photo</button><input id="imageUpload" type="file" accept="image/*" hidden>
+      <span class="divider"></span>
+      <label class="text-xs">Page <select id="pagePicker"></select></label>
+      <button class="btn btn-secondary" id="addPageBtn" type="button">＋ Page</button>
+      <button class="btn btn-secondary" id="duplicatePageBtn" type="button">Duplicate page</button>
+      <button class="btn btn-secondary" id="deletePageBtn" type="button">Delete page</button>
+      <span class="hint">Click to select · double-click text to edit · drag to move</span>
+    </div>
+    <div class="canvas-wrapper w-full justify-center">
+      <div class="pages">
+        {% macro person(x, p, ev) %}
+          <div class="names">{{ x.get(p ~ '_name') }}</div>
+          {% if x.get(p ~ '_parents') or x.get(p ~ '_address') %}
+          <div class="par">{{ x.get(p ~ '_parents') }}{% if x.get(p ~ '_address') %}<br>{{ x.get(p ~ '_address')|nl2br }}{% endif %}</div>
+          {% endif %}
+        {% endmacro %}
+
+        {% for pg in pages %}{% set ev = pg.event %}
+        <section class="sheet pat-{{ design.pattern }}" style="background-color: var(--paper);{% if design.background_type == 'gradient' %}background-image: {{ design.background_css }};{% endif %}">
+          <div class="frame b-{{ design.border }} {{ 'dual' if pg.langs|length > 1 else '' }}">
+            
+            {% if design.border == 'corners' %}
+              <span class="corner c1">❖</span><span class="corner c2">❖</span><span class="corner c3">❖</span><span class="corner c4">❖</span>
+            {% endif %}
+            
+            <div>
+            {% for lg in pg.langs %}{% set x = w[lg] %}{% set e = x.get(ev) or {} %}
+              <div class="lang {{ lg }} ns-{{ design.name_size }}{{ ' f-gv' if design.display_font == 'Great Vibes' else '' }}">
+                {% if design.ornament_char and loop.first %}<div class="orn">{{ design.ornament_char }}</div>{% endif %}
+                {% if x.opening %}<p class="opening">{{ x.opening }}</p>{% endif %}
+                {% if x.hosted_by %}<p class="small">{{ x.hosted_by }}</p>{% endif %}
+                {% if e.invite_line %}<p class="small">{{ e.invite_line }}</p>{% endif %}
+                
+                {{ person(x, order[0], ev) }}
+                <div class="amp">&amp;</div>
+                {{ person(x, order[1], ev) }}
+                
+                {% if design.divider != 'none' %}<div class="dv dv-{{ design.divider }}"></div>{% endif %}
+                
+                <div class="when">{{ e.date_text }}{% if e.time_text %}<br>{{ e.time_text }}{% endif %}</div>
+                {% if e.venue_text %}<p class="small">{{ e.venue_text|nl2br }}</p>{% endif %}
+                {% if e.compliments_from %}<p class="foot">{{ e.closing }}: {{ e.compliments_from }}</p>{% endif %}
+              </div>
+            {% endfor %}
+            </div>
+            
+            {% set ph = d.get('wedding_phone') if ev == 'wedding' else d.get('eng_phone') %}
+            {% if ph %}<div class="phone">☎ {{ ph }}</div>{% endif %}
+            
+          </div>
+        </section>
+        {% endfor %}
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+
+function setPaperColor(color) {
+
+    // Update the paper CSS variable
+    document.documentElement.style.setProperty(
+        '--paper',
+        color
+    );
+
+    // Update every card page
+    document.querySelectorAll('.sheet').forEach(sheet => {
+
+        sheet.style.backgroundColor = color;
+
+        // Remove AI gradient so paper colour becomes visible.
+        // CSS pattern classes will remain active.
+        sheet.style.removeProperty('background-image');
+
+    });
+
+}
+
+</script>
+<script src="/js/editor.js"></script>
+
+</body>
+</html>

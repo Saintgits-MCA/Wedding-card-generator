@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wedding card order form</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Noto+Sans+Malayalam:wght@400;600&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F3F0E9; --card:#FFFFFF; --ink:#1B2A27; --muted:#5E6B67;
+  --line:#D9D4C7; --green:#1F4D43; --green-soft:#E8F1EE; --gold:#C8860A; --focus:#0B6E5B;
+}
+*{box-sizing:border-box}
+html{scroll-padding-bottom:120px}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 "Hanken Grotesk",system-ui,sans-serif}
+.ml{font-family:"Noto Sans Malayalam",sans-serif;color:var(--muted);font-size:.85em;font-weight:400}
+[hidden]{display:none!important}
+
+/* ---------- header + stepper ---------- */
+header{background:var(--green);color:#fff;padding:28px 20px 0}
+.wrap{max-width:820px;margin:0 auto}
+h1{font:600 clamp(26px,5vw,38px)/1.1 Newsreader,serif;margin:0 0 4px}
+header p{margin:0 0 18px;color:#CFE0DA;max-width:58ch}
+.crumbs{display:flex;gap:4px;list-style:none;margin:0;padding:0}
+.crumb{flex:1}
+.crumb button{all:unset;box-sizing:border-box;width:100%;cursor:pointer;display:flex;align-items:center;gap:10px;
+  padding:12px 12px 14px;border-bottom:4px solid transparent;color:#A9C4BC;font-weight:500;font-size:.92rem}
+.crumb .n{flex:none;width:26px;height:26px;border-radius:50%;border:1.5px solid currentColor;display:grid;place-items:center;font-size:.8rem}
+.crumb.done button{color:#fff}.crumb.done .n{background:var(--gold);border-color:var(--gold);color:#1B1304}
+.crumb.on button{color:#fff;border-bottom-color:var(--gold)}
+.crumb.on .n{background:#fff;color:var(--green);border-color:#fff}
+.crumb button:disabled{cursor:default}
+.crumb button:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+
+/* ---------- layout ---------- */
+main{max-width:820px;margin:0 auto;padding:26px 20px 130px;min-height:60vh}
+.step h2{font:600 26px/1.2 Newsreader,serif;margin:0 0 4px}
+.lead{color:var(--muted);margin:0 0 22px}
+.panel{background:var(--card);border-radius:12px;padding:22px 22px 8px;margin:0 0 18px;border-top:3px solid var(--gold)}
+.panel h3{font:600 20px/1.2 Newsreader,serif;margin:0 0 14px}
+.panel .sub{margin:-8px 0 14px;color:var(--muted);font-size:.9rem}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.full{grid-column:1/-1}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.two .panel{margin:0}
+
+/* ---------- inputs ---------- */
+label.f{display:block;margin:0 0 16px;font-weight:500;font-size:.92rem}
+label.f .ml{display:block}
+.opt{font-weight:400;color:var(--muted)}
+input[type=text],input[type=tel],input[type=email],input[type=date],input[type=time],select,textarea{
+  width:100%;margin-top:5px;padding:11px 12px;border:1px solid var(--line);border-radius:8px;
+  font:inherit;background:#FCFBF8;color:var(--ink)}
+textarea{min-height:76px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--focus);outline-offset:1px}
+input:user-invalid,select:user-invalid{border-color:#C0392B;background:#FFF7F6}
+.q{font-weight:600;margin:0 0 8px}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 20px}
+.pill{position:relative}
+.pill input,.tile input{position:absolute;opacity:0;width:1px;height:1px}
+.pill>span{display:block;padding:9px 16px;border:1px solid var(--line);border-radius:999px;background:#FCFBF8;cursor:pointer;line-height:1.3}
+.pill>span .ml{display:inline;margin-left:6px;font-size:.8em}
+.pill input:checked+span{background:var(--green);color:#fff;border-color:var(--green)}
+.pill:hover>span{border-color:var(--green)}
+.pill input:checked+span .ml{color:#CFE0DA}
+.pill input:focus-visible+span,.tile input:focus-visible+span{outline:2px solid var(--focus);outline-offset:2px}
+
+/* big choice tiles */
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:0 0 24px}
+.tile{position:relative;display:block}
+.tile>span{display:block;height:100%;padding:18px 16px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);cursor:pointer}
+.tile b{display:block;font:600 20px/1.2 Newsreader,serif}
+.tile small{display:block;color:var(--muted);margin-top:4px;font-size:.85rem}
+.tile input:checked+span{border-color:var(--green);background:var(--green-soft);box-shadow:inset 0 0 0 1px var(--green)}
+.tile input:checked+span b::after{content:" ✓";color:var(--green)}
+
+.callout{background:var(--green-soft);border-radius:8px;padding:10px 14px;margin:0 0 18px;font-size:.92rem}
+.callout.warn{background:#FFF3D6;color:#7A4B00}
+.err{background:#FDECEA;border:1px solid #E5A29B;color:#7A1C12;padding:12px 16px;border-radius:8px;margin:0 0 18px}
+
+/* review */
+.review{display:grid;grid-template-columns:auto 1fr;gap:6px 18px;margin:0 0 16px}
+.review dt{color:var(--muted)}.review dd{margin:0;font-weight:500;overflow-wrap:anywhere}
+
+/* ---------- bottom bar ---------- */
+.bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:12px 20px;z-index:5}
+.bar .wrap{display:flex;gap:12px;align-items:center;justify-content:space-between}
+.bar .mid{flex:1;color:var(--muted);font-size:.88rem;text-align:center}
+.btn{font:600 1rem "Hanken Grotesk",sans-serif;border:0;border-radius:8px;padding:13px 26px;cursor:pointer}
+.btn.go{background:var(--gold);color:#1B1304}
+.btn.back{background:transparent;color:var(--green);border:1px solid var(--green)}
+.btn:disabled{opacity:.6;cursor:wait}
+.btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+@media (max-width:700px){
+  .grid,.two,.tiles{grid-template-columns:1fr}
+  .crumb button{justify-content:center;padding:10px 4px 12px}
+  .crumb .t{display:none}
+  .crumb.on .t{display:inline}
+  .crumb.on{flex:3}
+  .bar .mid{display:none}
+}
+@media (prefers-reduced-motion:no-preference){.step:not([hidden]){animation:in .2s ease-out}}
+@keyframes in{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<header><div class="wrap">
+  <h1>Wedding card order form</h1>
+  <p>Share your event details and describe your idea in your own words. Gemini writes the invitation and chooses a matching design, ready to print.</p>
+  <ol class="crumbs" id="crumbs">
+    <li class="crumb"><button type="button"><span class="n">1</span><span class="t">Card type</span></button></li>
+    <li class="crumb"><button type="button"><span class="n">2</span><span class="t">Bride &amp; groom</span></button></li>
+    <li class="crumb"><button type="button"><span class="n">3</span><span class="t">Event details</span></button></li>
+  </ol>
+</div></header>
+
+<main>
+{% if errors %}<div class="err" role="alert">{% for e in errors %}<div>{{ e }}</div>{% endfor %}</div>{% endif %}
+{% if not has_key %}<div class="callout warn">No GEMINI_API_KEY found, so cards will use plain wording and a default design.</div>{% endif %}
+
+<form method="post" action="/generate" id="orderForm" novalidate>
+
+<!-- ============ STEP 1 ============ -->
+<section class="step">
+  <h2>What would you like to print?</h2>
+  <p class="lead">Only the fields you need will be shown on the next steps.</p>
+
+  <p class="q">Cards for <span class="ml">കാർഡുകൾ അച്ചടിക്കുന്നത്</span></p>
+  <div class="tiles">
+    <label class="tile"><input type="radio" name="cards_for" value="Wedding" checked><span><b>Wedding</b><small>വിവാഹം</small></span></label>
+    <label class="tile"><input type="radio" name="cards_for" value="Engagement"><span><b>Engagement</b><small>ഒത്തുകല്യാണം</small></span></label>
+    <label class="tile"><input type="radio" name="cards_for" value="Both"><span><b>Both</b><small>രണ്ടും</small></span></label>
+  </div>
+
+  <div class="panel">
+    <p class="q">Invitation issued by <span class="ml">ഈ ക്ഷണക്കത്ത് തയ്യാറാക്കുന്നത്</span></p>
+    <div class="pills">
+      <label class="pill"><input type="radio" name="on_behalf_of" value="bride" checked><span>Bride's family <span class="ml">വധുവിന്റെ വീട്ടുകാർ</span></span></label>
+      <label class="pill"><input type="radio" name="on_behalf_of" value="groom"><span>Bridegroom's family <span class="ml">വരന്റെ വീട്ടുകാർ</span></span></label>
+    </div>
+
+    <p class="q">Language of printing</p>
+    <div class="pills">
+      <label class="pill"><input type="radio" name="language" value="English"><span>English</span></label>
+      <label class="pill"><input type="radio" name="language" value="Malayalam"><span>Malayalam</span></label>
+      <label class="pill"><input type="radio" name="language" value="Both" checked><span>English + Malayalam</span></label>
+    </div>
+
+    <div data-lang-both>
+      <p class="q">English and Malayalam on</p>
+      <div class="pills">
+        <label class="pill"><input type="radio" name="layout" value="separate" checked><span>Separate pages</span></label>
+        <label class="pill"><input type="radio" name="layout" value="same"><span>Same page</span></label>
+      </div>
+    </div>
+
+    <div class="grid">
+      <label class="f">Community <span class="opt">(sets the blessing line and design)</span>
+        <select name="community"><option>Hindu</option><option>Christian</option><option>Muslim</option><option selected>Other</option></select>
+      </label>
+      <label class="f full">Your invitation idea <span class="opt">(optional — describe it naturally; Gemini chooses matching colours, fonts and design)</span>
+        <textarea name="creative_brief" rows="3" placeholder="Example: A graceful Kerala palace-inspired invitation in deep emerald and antique gold, with delicate traditional motifs. Make the wording heartfelt, poetic and welcoming in fluent Malayalam and English.">{{ prefill.get('creative_brief', '') }}</textarea>
+      </label>
+      <label class="f full">Extra notes <span class="opt">(optional)</span>
+        <input type="text" name="style_notes" value="{{ prefill.get('style_notes', '') }}" placeholder="Anything to include, avoid, or emphasize?">
+      </label>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STEP 2 ============ -->
+<section class="step" hidden>
+  <h2>Who is getting married?</h2>
+  <p class="lead">Parents' names and addresses are optional. Leave them empty to keep them off the card.</p>
+  <div class="two">
+    <div class="panel">
+      <h3>Bride <span class="ml">വധു</span></h3>
+      <label class="f">Bride's name <span class="ml">വധുവിന്റെ പേര്</span><input type="text" name="bride_name" data-req autocomplete="off"></label>
+      <label class="f">Father's name <span class="ml">പിതാവിന്റെ പേര്</span><input type="text" name="bride_father" autocomplete="off"></label>
+      <label class="f">Mother's name <span class="ml">മാതാവിന്റെ പേര്</span><input type="text" name="bride_mother" autocomplete="off"></label>
+      <label class="f">Address <span class="ml">അഡ്രസ്സ്</span><textarea name="bride_address"></textarea></label>
+    </div>
+    <div class="panel">
+      <h3>Bridegroom <span class="ml">വരൻ</span></h3>
+      <label class="f">Bridegroom's name <span class="ml">വരന്റെ പേര്</span><input type="text" name="groom_name" data-req autocomplete="off"></label>
+      <label class="f">Father's name <span class="ml">പിതാവിന്റെ പേര്</span><input type="text" name="groom_father" autocomplete="off"></label>
+      <label class="f">Mother's name <span class="ml">മാതാവിന്റെ പേര്</span><input type="text" name="groom_mother" autocomplete="off"></label>
+      <label class="f">Address <span class="ml">അഡ്രസ്സ്</span><textarea name="groom_address"></textarea></label>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STEP 3 ============ -->
+<section class="step" hidden>
+  <h2 id="evTitle">Event details</h2>
+  <p class="lead" id="evLead"></p>
+
+  <div class="panel" data-for="wedding">
+    <h3>Wedding <span class="ml">കല്യാണം</span></h3>
+    <div class="grid">
+      <label class="f">Date of marriage <span class="ml">കല്യാണ തീയതി</span><input type="date" name="wedding_date" data-req></label>
+      <div></div> <!-- Spacer -->
+      
+      <label class="f">Muhurtham From <span class="ml">മുഹൂർത്തം (മുതൽ)</span><input type="time" name="wedding_time"></label>
+      <label class="f">Muhurtham To <span class="ml">മുഹൂർത്തം (വരെ)</span><input type="time" name="wedding_time_to"></label>
+      
+      <label class="f full">Place <span class="ml">സ്ഥലം</span><input type="text" name="wedding_place" autocomplete="off"></label>
+      <label class="f">Phone <span class="ml">ഫോൺ</span><input type="tel" name="wedding_phone" inputmode="tel"></label>
+      <label class="f">With best compliments <span class="ml">ഉപചാരപൂർവ്വം</span><input type="text" name="wedding_compliments" autocomplete="off"></label>
+    </div>
+  </div>
+
+  <div class="panel" data-for="engagement">
+    <h3>Engagement <span class="ml">ഒത്തുകല്യാണം</span></h3>
+    <div class="callout warn" id="dateHint" hidden>The engagement date is after the wedding date. Please check.</div>
+    <div class="grid">
+      <label class="f">Engagement date <span class="ml">ഒത്തുകല്യാണ തീയതി</span><input type="date" name="eng_date" data-req></label>
+      <div></div> <!-- Spacer -->
+      
+      <label class="f">Time From <span class="ml">സമയം (മുതൽ)</span><input type="time" name="eng_time"></label>
+      <label class="f">Time To <span class="ml">സമയം (വരെ)</span><input type="time" name="eng_time_to"></label>
+      
+      <label class="f full">Place <span class="ml">സ്ഥലം</span><input type="text" name="eng_place" autocomplete="off"></label>
+      <label class="f">Phone <span class="ml">ഫോൺ</span><input type="tel" name="eng_phone" inputmode="tel"></label>
+      <label class="f">With best compliments <span class="ml">ഉപചാരപൂർവ്വം</span><input type="text" name="eng_compliments" autocomplete="off"></label>
+    </div>
+  </div>
+</section>
+
+
+</form>
+</main>
+
+<div class="bar"><div class="wrap">
+  <button type="button" class="btn back" id="back">Back</button>
+  <span class="mid" id="status"></span>
+  <button type="button" class="btn go" id="next">Next</button>
+</div></div>
+
+<script>
+const PREFILL = {{ prefill|tojson }};
+const form   = document.getElementById('orderForm');
+const steps  = [...form.querySelectorAll('.step')];
+const crumbs = [...document.querySelectorAll('.crumb')];
+const nextB  = document.getElementById('next'), backB = document.getElementById('back');
+const LAST = steps.length - 1;
+let cur = 0, reached = 0;
+
+const val = n => (form.querySelector(`input[name="${n}"]:checked`) || {}).value;
+const fieldsOf = el => el.querySelectorAll('input,select,textarea');
+
+/* restore values when coming back from the preview */
+for (const [k, v] of Object.entries(PREFILL)) {
+  form.querySelectorAll(`[name="${k}"]`).forEach(el => {
+    if (el.type === 'radio') el.checked = (el.value === v); else el.value = v;
+  });
+}
+if (PREFILL.bride_name) reached = LAST;   // returning user can jump anywhere
+
+function setOn(el, on) { el.hidden = !on; fieldsOf(el).forEach(i => i.disabled = !on); }
+
+/* show only what the chosen card type needs; require only what is shown */
+function sync() {
+  const cf = val('cards_for') || 'Wedding';
+  document.querySelectorAll('[data-for]').forEach(el => setOn(el, cf === 'Both' || cf.toLowerCase() === el.dataset.for));
+  document.querySelectorAll('[data-lang-both]').forEach(el => setOn(el, val('language') === 'Both'));
+  form.querySelectorAll('[data-req]').forEach(i => { i.required = !i.disabled; });
+
+  const t = document.getElementById('evTitle'), l = document.getElementById('evLead');
+  if (cf === 'Engagement') { t.textContent = 'Engagement details'; l.textContent = 'Wedding details are not needed for engagement cards.'; }
+  else if (cf === 'Both')  { t.textContent = 'Wedding and engagement details'; l.textContent = 'Fill in both events. Each gets its own card.'; }
+  else                     { t.textContent = 'Wedding details'; l.textContent = 'Date is required. Everything else is optional and can be left empty.'; }
+  checkDates();
+}
+function checkDates() {
+  const w = form.wedding_date, e = form.eng_date;
+  document.getElementById('dateHint').hidden = !(w.value && e.value && !w.disabled && !e.disabled && e.value > w.value);
+}
+
+function show(i) {
+  cur = i; reached = Math.max(reached, i);
+  steps.forEach((s, k) => s.hidden = k !== i);
+  crumbs.forEach((c, k) => {
+    c.classList.toggle('on', k === i);
+    c.classList.toggle('done', k < i);
+    const b = c.querySelector('button');
+    b.disabled = k > reached;
+    b.toggleAttribute('aria-current', k === i);
+  });
+  backB.style.visibility = i === 0 ? 'hidden' : 'visible';
+  nextB.textContent = i === LAST ? 'Create invitation card' : 'Next';
+  document.getElementById('status').textContent = `Step ${i + 1} of ${steps.length}`;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function validStep(i) {
+  if (steps[i].hidden) show(i);                  // reveal the step only if it is hidden
+  for (const el of fieldsOf(steps[i])) {
+    if (!el.disabled && !el.checkValidity()) { el.reportValidity(); el.focus(); return false; }
+  }
+  return true;
+}
+
+function fmtDate(v) {
+  if (!v) return '';
+  const d = new Date(v + 'T00:00');
+  return isNaN(d) ? v : d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+/* navigation */
+nextB.addEventListener('click', () => {
+  if (cur === LAST) { form.requestSubmit(); return; }
+  if (validStep(cur)) show(cur + 1);
+});
+backB.addEventListener('click', () => { if (cur > 0) show(cur - 1); });
+crumbs.forEach((c, k) => c.querySelector('button').addEventListener('click', () => {
+  if (k <= cur || validStep(cur)) show(k);
+}));
+
+/* form events */
+form.querySelectorAll('input[name=cards_for],input[name=language]').forEach(r => r.addEventListener('change', sync));
+form.wedding_date.addEventListener('change', checkDates);
+form.eng_date.addEventListener('change', checkDates);
+
+form.addEventListener('submit', ev => {
+  if (cur !== LAST) { ev.preventDefault(); nextB.click(); return; }   // Enter key on earlier steps = Next
+  for (let i = 0; i <= LAST; i++) {
+    if (!validStep(i)) { ev.preventDefault(); return; }
+  }
+  show(LAST);
+  nextB.textContent = 'Gemini is writing and designing…';
+  setTimeout(() => { nextB.disabled = true; backB.disabled = true; }, 0);
+});
+
+window.addEventListener('pageshow', () => {
+  nextB.disabled = false; backB.disabled = false;
+  nextB.textContent = cur === LAST ? 'Create invitation card' : 'Next';
+});
+sync();
+show(0);
+</script>
+</body>
+</html>
