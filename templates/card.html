@@ -14,6 +14,66 @@
 <script src="../js/html2canvas.min.js"></script>
 
 <style>
+  /* Artwork is inside the sheet so PNG capture and print include it. */
+.sheet { isolation: isolate; }
+.frame { z-index: 2; }
+.floral-border-overlay {
+  position: absolute;
+  inset: 2.5mm;
+  z-index: 4;
+  pointer-events: none;
+  color: var(--accent);
+  opacity: .92;
+  font-family: Georgia, serif;
+  line-height: 1;
+}
+.floral-border-overlay .flower-edge {
+  position: absolute;
+  white-space: nowrap;
+  font-size: 10pt;
+  letter-spacing: 2.5px;
+  text-shadow: 0 0 1px var(--paper);
+}
+.floral-border-overlay .top-edge { top: 0; left: 50%; transform: translateX(-50%); }
+.floral-border-overlay .bottom-edge { bottom: 0; left: 50%; transform: translateX(-50%); }
+.floral-border-overlay .left-edge {
+  left: 0; top: 50%; writing-mode: vertical-rl; transform: translateY(-50%);
+}
+.floral-border-overlay .right-edge {
+  right: 0; top: 50%; writing-mode: vertical-rl; transform: translateY(-50%);
+}
+.floral-border-overlay.density-sparse .flower-edge { letter-spacing: 5px; opacity: .72; }
+.floral-border-overlay.density-balanced .flower-edge { letter-spacing: 3px; }
+.floral-border-overlay.density-rich .flower-edge { letter-spacing: 1.5px; font-size: 11pt; }
+.floral-border-overlay.style-jasmine { color: #B9A46A; }
+.floral-border-overlay.style-rose { color: #B65C70; }
+.floral-border-overlay.style-lotus { color: #C47C91; }
+.floral-border-overlay.style-marigold { color: #D18A24; }
+.floral-border-overlay.style-orchid { color: #9865A8; }
+.floral-border-overlay.style-hibiscus { color: #C94C55; }
+.hero-art {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 31mm;
+  margin: 0 auto 3mm;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+.hero-art img {
+  display: block;
+  max-width: 58%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+.hero-art.position-top-left { justify-content: flex-start; }
+.hero-art.position-top-right { justify-content: flex-end; }
+.hero-art.position-bottom-center { margin: 3mm auto 0; }
+@media print {
+  .floral-border-overlay, .hero-art { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
 :root{
   --paper:{{ design.paper }}; 
   --ink:{{ design.ink }}; 
@@ -307,7 +367,7 @@ body.exporting .selected{outline:none!important}
         </select>
       </div>
       <div class="input-group">
-        <label>Border Frame</label>
+        <label>Border Style</label>
         <select id="borderStyle" onchange="setBorder(this.value)">
           {% for b in ['double','temple','single','dots','corners','none'] %}<option value="{{ b }}" {% if design.border == b %}selected{% endif %}>{{ b|capitalize }}</option>{% endfor %}
         </select>

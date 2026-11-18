@@ -120,7 +120,7 @@ input:user-invalid,select:user-invalid{border-color:#C0392B;background:#FFF7F6}
 
 <main>
 {% if errors %}<div class="err" role="alert">{% for e in errors %}<div>{{ e }}</div>{% endfor %}</div>{% endif %}
-{% if not has_key %}<div class="callout warn">No GEMINI_API_KEY found, so cards will use plain wording and a default design.</div>{% endif %}
+{% if not has_key %}<div class="callout warn">Gemini is unavailable, but the local creative engine will still create a varied design from your brief and card details.</div>{% endif %}
 
 <form method="post" action="/generate" id="orderForm" novalidate>
 
@@ -162,7 +162,13 @@ input:user-invalid,select:user-invalid{border-color:#C0392B;background:#FFF7F6}
       <label class="f">Community <span class="opt">(sets the blessing line and design)</span>
         <select name="community"><option>Hindu</option><option>Christian</option><option>Muslim</option><option selected>Other</option></select>
       </label>
-      <label class="f full">Your invitation idea <span class="opt">(optional — describe it naturally; Gemini chooses matching colours, fonts and design)</span>
+      <label class="f">Card orientation
+        <select name="orientation">
+          <option value="portrait" {% if prefill.get('orientation', 'portrait') == 'portrait' %}selected{% endif %}>Portrait (vertical)</option>
+          <option value="landscape" {% if prefill.get('orientation') == 'landscape' %}selected{% endif %}>Landscape (horizontal)</option>
+        </select>
+      </label>
+      <label class="f full">Your invitation idea <span class="opt">(optional — describe it naturally; Describe any style, colours, decorations, borders, layout or image-inspired look)</span>
         <textarea name="creative_brief" rows="3" placeholder="Example: A graceful Kerala palace-inspired invitation in deep emerald and antique gold, with delicate traditional motifs. Make the wording heartfelt, poetic and welcoming in fluent Malayalam and English.">{{ prefill.get('creative_brief', '') }}</textarea>
       </label>
       <label class="f full">Extra notes <span class="opt">(optional)</span>
